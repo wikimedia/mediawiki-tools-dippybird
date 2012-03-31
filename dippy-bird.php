@@ -78,6 +78,9 @@ class DippyBird {
 		echo "Dippy bird" . PHP_EOL;
 	}
 
+	/**
+	 * @return array
+	 */
 	public function executeQuery() {
 		// config options we need
 		$opts = array( 'port', 'server', 'username', 'query' );
@@ -93,11 +96,10 @@ class DippyBird {
 				echo "Query results: " . print_r( $results, true ) . PHP_EOL;
 			}
 			return $results;
-		} else {
-			$msg = "There was a problem executing your query." . PHP_EOL;
-			$msg .= "Exiting with status: $status";
-			$this->bail( $status, $msg );
 		}
+		$msg = "There was a problem executing your query." . PHP_EOL;
+		$msg .= "Exiting with status: $status";
+		$this->bail( $status, $msg );
 	}
 
 	/**
@@ -261,9 +263,10 @@ class DippyBird {
 	 * Check sanity of configuration values
 	 *
 	 * If a value is required but unset, config is not sane.
+	 * @return bool
 	 */
 	protected function isConfigSane() {
-		foreach ( $this->configOpts as $opt => $info ) {
+		foreach ( $this->configOpts as $info ) {
 			if ( $info['required'] === true && is_null( $info['value'] ) ) {
 				return false;
 			}
@@ -273,6 +276,7 @@ class DippyBird {
 
 	/**
 	 * Get the 'long' options available
+	 * @return array
 	 */
 	public function getLongOpts() {
 		$long_opts = array(
@@ -291,6 +295,7 @@ class DippyBird {
 
 	/**
 	 * Get the 'short' options available
+	 * @return string
 	 */
 	public function getShortOpts() {
 		$short_opts = 	"P:"; 	// port
@@ -307,6 +312,7 @@ class DippyBird {
 
 	/**
 	 * Fetch usage message
+	 * @return string
 	 */
 	public function getUsage() {
 		$usage = <<<USAGE
