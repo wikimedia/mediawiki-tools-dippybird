@@ -39,7 +39,7 @@ class DippyBird {
 			'value' => false,
 		),
 	);
-	
+
 	protected $validActions = array(
 		//'approve' => 'executeApprove',
 		//'verify' => 'executeVerify',
@@ -62,17 +62,17 @@ class DippyBird {
 			$msg = "There is something wrong in your arguments or configuration.";
 			$this->bail( 1, $msg );
 		}
-		
+
 		// determine the 'action' to take
 		$action = $this->getConfigOpt( 'action' );
 		$action_method = $this->getActionMethod( $action );
-		
+
 		// fetch the results of the query
 		$results = $this->executeQuery();
-		
+
 		// execute the action to take on the query results
 		$this->{$action_method}( $results );
-		
+
 		echo "Thanks for playing!" . PHP_EOL;
 		echo "<3," . PHP_EOL;
 		echo "Dippy bird" . PHP_EOL;
@@ -99,22 +99,26 @@ class DippyBird {
 			$this->bail( $status, $msg );
 		}
 	}
-	
+
+	/**
+	 * @param array $results
+	 * @return mixed
+	 */
 	public function executeSubmit( $results ) {
 		// If there are less than two items in the array, there are no changesets on which to operate
 		if ( count( $results ) < 2 ) {
 			// nothing to process
 			return;
 		}
-		
+
 		// prepare to do... stuff
 		$submitted = 0;
 		$opts = array( 'port', 'server', 'username' );
 		$config_opts = $this->getConfigOptsByArray( $opts );
-		
+
 		// get the patchset ids form the result set
 		$patchset_ids = self::extractPatchSetIds( $results );
-		
+
 		// loop through patchsets and submit them one by one
 		foreach ( $patchset_ids as $patchset_id ) {
 			// prepare command to execute
@@ -123,7 +127,7 @@ class DippyBird {
 			if ( $this->getConfigOpt( 'verbose' ) ) {
 				echo "Executing: " . $cmd . PHP_EOL;
 			}
-			
+
 			// should we do this for reals?!
 			if ( !$this->getConfigOpt( 'pretend' ) ) {
 				exec( escapeshellcmd( $cmd ), $cmd_results, $status );
@@ -136,10 +140,10 @@ class DippyBird {
 		}
 		echo "$submitted changesets submitted." . PHP_EOL;
 	}
-	
+
 	/**
 	 * Extract patchset ids
-	 * @param array JSON representations of gerrit changesets
+	 * @param array $results JSON representations of gerrit changesets
 	 * @return array
 	 */
 	public static function extractPatchSetIds( $results ) {
@@ -153,9 +157,9 @@ class DippyBird {
 		return $patchset_ids;
 	}
 
-	/** 
+	/**
 	 * Extract patchset id
-	 * @param string JSON representation of gerrit changeset
+	 * @param string $result JSON representation of gerrit changeset
 	 * @return mixed patchset id or null
 	 */
 	public static function extractPatchSetId( $result ) {
@@ -175,7 +179,7 @@ class DippyBird {
 		if ( empty( $config ) ) {
 			return;
 		}
-		
+
 		// only set valid config opts
 		foreach ( $config as $key => $value ) {
 			if ( isset( $this->configOpts[ $key ] ) ) {
@@ -183,19 +187,19 @@ class DippyBird {
 			}
 		}
 	}
-	
+
 	/**
 	 * Load configuration options from an ini file
-	 * @param string Path to configuration file
+	 * @param string $config_file Path to configuration file
 	 */
 	protected function loadConfiguration( $config_file ) {
 		$config = parse_ini_file( $config_file );
 
 		// do some option clean up....
-		
+
 		$this->setConfigByArray( $config );
 	}
-	
+
 	/**
 	 * Handle runtime command line options
 	 */
@@ -208,7 +212,7 @@ class DippyBird {
 		}
 
 		$config = array();
-		
+
 		foreach ( $user_opts as $key => $value ) {
 			switch ( $key ) {
 				case 'port':
@@ -249,10 +253,10 @@ class DippyBird {
 					break;
 			}
 		}
-		
+
 		$this->setConfigByArray( $config );
 	}
-	
+
 	/**
 	 * Check sanity of configuration values
 	 *
@@ -266,7 +270,7 @@ class DippyBird {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Get the 'long' options available
 	 */
@@ -275,7 +279,7 @@ class DippyBird {
 			"port:",
 			"server:",
 			"username:",
-			"query:", 
+			"query:",
 			"action:",
 			"pretend",
 			"help",
@@ -284,7 +288,7 @@ class DippyBird {
 		);
 		return $long_opts;
 	}
-	
+
 	/**
 	 * Get the 'short' options available
 	 */
@@ -300,7 +304,7 @@ class DippyBird {
 		$short_opts .= "d";		// debug
 		return $short_opts;
 	}
-	
+
 	/**
 	 * Fetch usage message
 	 */
@@ -316,14 +320,14 @@ actions currently include:
 Usage: php dippy-bird.php --username=<username> --server=<gerrit servername>
 		--port=<gerrit port> [--verbose] [--debug] [--help]
 		--action=<action> --query=<query>
-	
+
 Required parameters:
 	--username, -u		Username you use to log in to Gerrit
 	--server, -s		Hostname of the Gerrit server
 	--port, -P		Port where Gerrit is running
 	--query, -q		Gerrit query (See docs: http://bit.ly/H9bYiq)
 	--action, -a		Action to take after running query
-	
+
 Optional options:
 	--pretend, -p		Executes query but not action
 	--verbose, -v		Run in 'verbose' mode
@@ -336,10 +340,11 @@ a 'config.ini' file in the same directory as this script.
 USAGE;
 		return $usage;
 	}
-	
+
 	/**
 	 * Print usage message and die
-	 * @param int Status code with which to exit
+	 * @param int $status Status code with which to exit
+	 * @param string $msg
 	 */
 	public function bail( $status = 0, $msg = null ) {
 		if ( !is_null( $msg ) ) {
@@ -349,14 +354,15 @@ USAGE;
 		echo PHP_EOL;
 		exit( intval( $status ) );
 	}
-	
+
 	/**
 	 * Fetch $this->configOpts
+	 * @return array
 	 */
 	public function getConfigOpts() {
 		return $this->configOpts;
 	}
-	
+
 	/**
 	 * Fetch a specified configuration option
 	 *
@@ -376,10 +382,10 @@ USAGE;
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Fetch multiple config option values
-	 * @param array Config option names to fetch
+	 * @param array $opts Config option names to fetch
 	 * @return array Option name => value
 	 */
 	public function getConfigOptsByArray( array $opts ) {
@@ -389,7 +395,7 @@ USAGE;
 		}
 		return $config_opts;
 	}
-	
+
 	/**
 	 * Determine whether or not requested action is valid to take
 	 *
@@ -403,10 +409,10 @@ USAGE;
 		}
 		return false;
 	}
-	
-	/** 
+
+	/**
 	 * Fetch the method name corresponding to a specific 'action'
-	 * 
+	 *
 	 * If the action is not valid, fail and bail.
 	 * @param string
 	 * @return string
@@ -419,8 +425,8 @@ USAGE;
 				$msg .= "\t$action" . PHP_EOL;
 			}
 			$this->bail( 1, $msg );
-		} 
+		}
 		return $this->validActions[ $action ];
 	}
-	
+
 }
