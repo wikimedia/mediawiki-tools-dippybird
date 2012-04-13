@@ -124,7 +124,7 @@ class DippyBird {
 		// loop through patchsets and submit them one by one
 		foreach ( $patchset_ids as $patchset_id ) {
 			// prepare command to execute
-			$cmd = "ssh -p {$config_opts['port']} {$config_opts['username']}@{$config_opts['server']} gerrit approve --verified 1 --code-review 2 --submit $patchset_id";
+			$cmd = "ssh -p {$config_opts['port']} {$config_opts['username']}@{$config_opts['server']} gerrit review --verified 1 --code-review 2 --submit $patchset_id";
 
 			if ( $this->getConfigOpt( 'verbose' ) ) {
 				echo "Executing: " . $cmd . PHP_EOL;
