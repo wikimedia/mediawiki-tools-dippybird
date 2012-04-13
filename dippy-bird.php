@@ -354,6 +354,7 @@ Purpose: Perform bulk actions on Gerrit changesets
 Description: Given a gerrit search query, perform a selected 'aciton'. Valid
 actions currently include:
 	submit: Verify, approve, and submit changeset
+	abandon: Abandon changeset
 
 Usage: php dippy-bird.php --username=<username> --server=<gerrit servername>
 		--port=<gerrit port> [--verbose] [--debug] [--help]
