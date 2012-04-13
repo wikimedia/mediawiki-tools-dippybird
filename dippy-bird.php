@@ -44,7 +44,7 @@ class DippyBird {
 		// 'approve' => 'executeApprove',
 		// 'verify' => 'executeVerify',
 		'submit' => 'executeSubmit',
-		// 'abandon' => 'executeAbandon',
+		'abandon' => 'executeAbandon',
 	);
 
 	public function __construct() {
@@ -55,6 +55,12 @@ class DippyBird {
 		}
 	}
 
+	/**
+	 * Execution method
+	 *
+	 * Performs sanity check, execute specific gerrit query, then performs
+	 * specified action.
+	 */
 	public function dip() {
 		$this->handleOpts();
 		if ( !$this->isConfigSane() ) {
@@ -79,6 +85,7 @@ class DippyBird {
 	}
 
 	/**
+	 * Execute specified gerrit query
 	 * @return array
 	 */
 	public function executeQuery() {
@@ -103,15 +110,34 @@ class DippyBird {
 	}
 
 	/**
+	 * Execute gerrit review --submit to review and submit patchsets
 	 * @param array $results
-	 * @return mixed
 	 */
 	public function executeSubmit( $results ) {
-		$review_opts = '--verified 1 --code-review 2';
+		$review_opts = '--verified=+1 --code-review=+2';
 		$action = 'submit';
 		$this->gerritReviewWrapper( $results, $action, $review_opts );
 	}
 
+	/**
+	 * Execute gerrit review --abandon to abandon patchsets
+	 * @param array $results
+	 */
+	public function executeAbandon( $results ) {
+		$action = 'abandon';
+		$this->gerritReviewWrapper( $results, $action );
+	}
+
+	/**
+	 * A wrapper around the 'gerrit review' command
+	 *
+	 * Given a set of results from a gerrit query, perform one of the available
+	 * gerrit review actions
+	 * @see $this->validActions
+	 * @param array $results
+	 * @param string $action
+	 * @param string $review_opts
+	 */
 	protected function gerritReviewWrapper( $results, $action, $review_opts = '' ) {
 		// If there are less than two items in the array, there are no changesets on which to operate
 		if ( count( $results ) < 2 ) {
