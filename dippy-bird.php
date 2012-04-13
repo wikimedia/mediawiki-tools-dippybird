@@ -45,6 +45,7 @@ class DippyBird {
 		// 'verify' => 'executeVerify',
 		'submit' => 'executeSubmit',
 		'abandon' => 'executeAbandon',
+		'restore' => 'executeRestore',
 	);
 
 	public function __construct() {
@@ -125,6 +126,15 @@ class DippyBird {
 	 */
 	public function executeAbandon( $results ) {
 		$action = 'abandon';
+		$this->gerritReviewWrapper( $results, $action );
+	}
+	
+	/**
+	 * Execute gerrit review --restore to restore previously abandoed patchsets
+	 * @param array $results
+	 */
+	public function executeRestore( $results ) {
+		$action = 'restore';
 		$this->gerritReviewWrapper( $results, $action );
 	}
 
@@ -355,6 +365,7 @@ Description: Given a gerrit search query, perform a selected 'aciton'. Valid
 actions currently include:
 	submit: Verify, approve, and submit changeset
 	abandon: Abandon changeset
+	restore: Restore previously abandoned changesets
 
 Usage: php dippy-bird.php --username=<username> --server=<gerrit servername>
 		--port=<gerrit port> [--verbose] [--debug] [--help]
