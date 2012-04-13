@@ -41,10 +41,10 @@ class DippyBird {
 	);
 
 	protected $validActions = array(
-		//'approve' => 'executeApprove',
-		//'verify' => 'executeVerify',
+		// 'approve' => 'executeApprove',
+		// 'verify' => 'executeVerify',
 		'submit' => 'executeSubmit',
-		//'abandon' => 'executeAbandon',
+		// 'abandon' => 'executeAbandon',
 	);
 
 	public function __construct() {
@@ -71,7 +71,7 @@ class DippyBird {
 		$results = $this->executeQuery();
 
 		// execute the action to take on the query results
-		$this->{$action_method}( $results );
+		$this-> { $action_method } ( $results );
 
 		echo "Thanks for playing!" . PHP_EOL;
 		echo "<3," . PHP_EOL;
@@ -158,7 +158,7 @@ class DippyBird {
 		$patchset_ids = array();
 		foreach ( $results as $result ) {
 			$patchset_id = self::extractPatchSetId( $result );
-			if ( !is_null( $patchset_id )) {
+			if ( !is_null( $patchset_id ) ) {
 				$patchset_ids[] = $patchset_id;
 			}
 		}
@@ -172,7 +172,7 @@ class DippyBird {
 	 */
 	public static function extractPatchSetId( $result ) {
 		$changeset = json_decode( $result, true );
-		if( isset( $changeset['currentPatchSet']['revision'] ) ) {
+		if ( isset( $changeset['currentPatchSet']['revision'] ) ) {
 			return $changeset['currentPatchSet']['revision'];
 		}
 		return null;
@@ -433,7 +433,7 @@ USAGE;
 		if ( !$this->isValidAction( $action ) ) {
 			$msg = "Invalid action requested" . PHP_EOL;
 			$msg .= "Valid actions include:" . PHP_EOL;
-			foreach( $this->validActions as $action => $method ) {
+			foreach ( $this->validActions as $action => $method ) {
 				$msg .= "\t$action" . PHP_EOL;
 			}
 			$this->bail( 1, $msg );
