@@ -1,7 +1,7 @@
 <?php
 
 $dippy_bird = new DippyBird();
-$dippy_bird->run();
+$dippy_bird->dip();
 
 
 class DippyBird {
@@ -55,7 +55,7 @@ class DippyBird {
 		}
 	}
 
-	public function run() {
+	public function dip() {
 		$this->handleOpts();
 		if ( !$this->isConfigSane() ) {
 			// bail and fail
