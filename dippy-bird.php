@@ -107,6 +107,12 @@ class DippyBird {
 	 * @return mixed
 	 */
 	public function executeSubmit( $results ) {
+		$review_opts = '--verified 1 --code-review 2';
+		$action = 'submit';
+		$this->gerritReviewWrapper( $results, $action, $review_opts );
+	}
+
+	protected function gerritReviewWrapper( $results, $action, $review_opts = '' ) {
 		// If there are less than two items in the array, there are no changesets on which to operate
 		if ( count( $results ) < 2 ) {
 			// nothing to process
@@ -114,7 +120,7 @@ class DippyBird {
 		}
 
 		// prepare to do... stuff
-		$submitted = 0;
+		$num_handled = 0;
 		$opts = array( 'port', 'server', 'username' );
 		$config_opts = $this->getConfigOptsByArray( $opts );
 
@@ -124,7 +130,7 @@ class DippyBird {
 		// loop through patchsets and submit them one by one
 		foreach ( $patchset_ids as $patchset_id ) {
 			// prepare command to execute
-			$cmd = "ssh -p {$config_opts['port']} {$config_opts['username']}@{$config_opts['server']} gerrit review --verified 1 --code-review 2 --submit $patchset_id";
+			$cmd = "ssh -p {$config_opts['port']} {$config_opts['username']}@{$config_opts['server']} gerrit review {$review_opts} --{$action} $patchset_id";
 
 			if ( $this->getConfigOpt( 'verbose' ) ) {
 				echo "Executing: " . $cmd . PHP_EOL;
@@ -134,13 +140,13 @@ class DippyBird {
 			if ( !$this->getConfigOpt( 'pretend' ) ) {
 				exec( escapeshellcmd( $cmd ), $cmd_results, $status );
 				if ( $status !== 0 ) {
-					$msg = "Problem executing submit" . PHP_EOL;
+					$msg = "Problem executing $action" . PHP_EOL;
 					$this->bail( 1, $msg );
 				}
 			}
-			$submitted++;
+			$num_handled++;
 		}
-		echo "$submitted changesets submitted." . PHP_EOL;
+		echo "$action performed on $num_handled changesets." . PHP_EOL;
 	}
 
 	/**
