@@ -38,11 +38,18 @@ class DippyBird {
 			'required' => false,
 			'value' => false,
 		),
+		'verify' => array(
+			'required' => false,
+			'value' => false,
+		),
+		'review' => array(
+			'required' => false,
+			'value' => false,
+		),
 	);
 
 	protected $validActions = array(
-		// 'approve' => 'executeApprove',
-		// 'verify' => 'executeVerify',
+		'review' => 'executeReview',
 		'submit' => 'executeSubmit',
 		'abandon' => 'executeAbandon',
 		'restore' => 'executeRestore',
@@ -72,6 +79,9 @@ class DippyBird {
 
 		// determine the 'action' to take
 		$action = $this->getConfigOpt( 'action' );
+		if ( $action == 'review' ) {
+			$this->isValidCodeReview();
+		}
 		$action_method = $this->getActionMethod( $action );
 
 		// fetch the results of the query
@@ -115,7 +125,7 @@ class DippyBird {
 	 * @param array $results
 	 */
 	public function executeSubmit( $results ) {
-		$review_opts = '--verified=+1 --code-review=+2';
+		$review_opts = '--verified=+1 --code-review=+2 --submit';
 		$action = 'submit';
 		$this->gerritReviewWrapper( $results, $action, $review_opts );
 	}
@@ -126,16 +136,73 @@ class DippyBird {
 	 */
 	public function executeAbandon( $results ) {
 		$action = 'abandon';
-		$this->gerritReviewWrapper( $results, $action );
+		$this->gerritReviewWrapper( $results, $action, '--abandon' );
 	}
-	
+
 	/**
 	 * Execute gerrit review --restore to restore previously abandoed patchsets
 	 * @param array $results
 	 */
 	public function executeRestore( $results ) {
 		$action = 'restore';
-		$this->gerritReviewWrapper( $results, $action );
+		$this->gerritReviewWrapper( $results, $action, '--restore' );
+	}
+
+	/**
+	 * Execute gerrit review code review operations
+	 * @param array $results
+	 */
+	public function executeReview( $results ) {
+		$opts = $this->getConfigOptsByArray( array( 'verify', 'review' ) );
+		$review_opts = array();
+		if ( !is_null( $opts['verify'] ) ) {
+			$review_opts[] = "--verified={$opts['verify']}";
+		}
+		if ( !is_null( $opts['review'] ) ) {
+			$review_opts[] = "--code-review={$opts['review']}";
+		}
+		$review_opts = implode( " ", $review_opts );
+		$action = 'code review';
+		$this->gerritReviewWrapper( $results, $action, $review_opts );
+	}
+
+	/**
+	 * Validate code review options
+	 */
+	public function isValidCodeReview() {
+		$msg = "There is a problem with your 'review' options:" . PHP_EOL;
+		$opts = $this->getConfigOptsByArray( array( 'verify', 'review' ) );
+		if ( $opts['verify'] === false && $opts['review'] === false ) {
+			$msg .= "'review' action requires either 'verify' and/or 'review' options." . PHP_EOL;
+			$this->bail( 1, $msg );
+		}
+
+		$fail = false;
+		// valid 'verify' options
+		$valid_verify = array(
+			"+1",
+			"0",
+			"-1",
+		);
+		if ( !is_null( $opts['verify'] ) && !in_array( $opts['verify'], $valid_verify ) ) {
+			$msg .= "'verify' must be one of: -1, 0, +1" . PHP_EOL;
+			$fail = true;
+		}
+		$valid_review = array(
+			"-2",
+			"-1",
+			"0",
+			"+1",
+			"+2",
+		);
+		if ( !is_null( $opts['review'] ) && !in_array( $opts['review'], $valid_review ) ) {
+			$msg .= "'review' must be one of: -2, -1, 0, +1, +2" . PHP_EOL;
+			$fail = true;
+		}
+		if ( $fail ) {
+			$this->bail( 1, $msg );
+		}
+		return true;
 	}
 
 	/**
@@ -162,11 +229,10 @@ class DippyBird {
 
 		// get the patchset ids form the result set
 		$patchset_ids = self::extractPatchSetIds( $results );
-
 		// loop through patchsets and submit them one by one
 		foreach ( $patchset_ids as $patchset_id ) {
 			// prepare command to execute
-			$cmd = "ssh -p {$config_opts['port']} {$config_opts['username']}@{$config_opts['server']} gerrit review {$review_opts} --{$action} $patchset_id";
+			$cmd = "ssh -p {$config_opts['port']} {$config_opts['username']}@{$config_opts['server']} gerrit review {$review_opts} $patchset_id";
 
 			if ( $this->getConfigOpt( 'verbose' ) ) {
 				echo "Executing: " . $cmd . PHP_EOL;
@@ -293,6 +359,12 @@ class DippyBird {
 					$config['verbose'] = true;
 					$config['debug'] = true;
 					break;
+				case 'verify':
+					$config['verify'] = $value;
+					break;
+				case 'review':
+					$config['review'] = $value;
+					break;
 				default:
 					break;
 			}
@@ -331,6 +403,8 @@ class DippyBird {
 			"help",
 			"verbose",
 			"debug",
+			"verify:",
+			"review:",
 		);
 		return $long_opts;
 	}
@@ -383,6 +457,8 @@ Optional options:
 	--verbose, -v		Run in 'verbose' mode
 	--debug, -d		Run in 'debug' mode
 	--help, -h		Display this help message
+	--review=<N>		Mark patchsets as reviewed with value N (eg +2)
+	--verify=<N>		Mark patchsets as verified with value N (eg -1)
 
 Configuration options can also be set using the longoption names placed in
 a 'config.ini' file in the same directory as this script.
