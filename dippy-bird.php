@@ -248,7 +248,7 @@ class DippyBird {
 			}
 			$num_handled++;
 		}
-		echo "$action performed on $num_handled changesets." . PHP_EOL;
+		echo "$action performed on $num_handled changeset" . ( $num_handled > 1 ? 's' : '' ) . '.' . PHP_EOL;
 	}
 
 	/**
