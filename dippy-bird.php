@@ -435,7 +435,7 @@ class DippyBird {
 
 Purpose: Perform bulk actions on Gerrit changesets
 
-Description: Given a gerrit search query, perform a selected 'aciton'. Valid
+Description: Given a gerrit search query, perform a selected 'action'. Valid
 actions currently include:
 	submit: Verify, approve, and submit changeset
 	abandon: Abandon changeset
