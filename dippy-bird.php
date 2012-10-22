@@ -530,10 +530,8 @@ USAGE;
 	 * @return bool
 	 */
 	public function isValidAction( $action ) {
-		if ( isset( $this->validActions[ $action ] ) ) {
-			return true;
-		}
-		return false;
+		return ( isset( $this->validActions[ $action ] ) );
+
 	}
 
 	/**
